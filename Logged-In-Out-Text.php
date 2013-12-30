@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: Logged In/Out Text
-Version: 0.1
+Version: 0.1.1
 Description: Show different content if the user is logged in.
 Author: Eric King
 Author URI: http://webdeveric.com/
