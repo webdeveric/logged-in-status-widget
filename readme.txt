@@ -1,10 +1,10 @@
 === Plugin Name ===
 Contributors: webdeveric
-Donate link: http://webdeveric.com/donate/
+Donate link: http://webdeveric.com/
 Tags: widget, logged in, logged out
 Requires at least: 3.0.0
-Tested up to: 3.1
-Stable tag: 0.1
+Tested up to: 4.0
+Stable tag: 0.2
 
 This plugin provides a sidebar widget that will show different content to logged in users.
 
