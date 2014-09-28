@@ -8,45 +8,89 @@ Author: Eric King
 Author URI: http://webdeveric.com/
 */
 
+add_shortcode('login-url', function() {
+    return wp_login_url( get_permalink() );
+});
+
+add_shortcode('logout-url', function() {
+    return wp_logout_url( get_permalink() );
+});
+
+class UserInfoShortcode
+{
+    protected $user;
+
+    public function __construct( WP_User $user )
+    {
+        $this->user = $user;
+        $this->setup_shortcodes();
+    }
+
+    protected function setup_shortcodes()
+    {
+        $fields = array(
+            'id',
+            'user_login',
+            'user_nicename',
+            'user_email',
+            'user_url',
+            'user_registered',
+            'user_status',
+            'display_name'
+        );
+
+        foreach ( $fields as &$field ) {
+            add_shortcode('user_' . $field, array( &$this, 'shortcode') );
+        }
+    }
+
+    public function shortcode( $atts, $content, $shortcode_name )
+    {
+        $key = substr($shortcode_name, 5);
+
+        if ( $key === 'id' )
+            $key = 'ID';
+
+        if ( isset( $this->user->$key ) ) {
+            return $this->user->$key;
+        }
+
+        return '';
+    }
+}
+
 class LoggedInStatusWidget extends WP_Widget
 {
-    function __construct( $name = 'Logged In Status Widget' )
+    public function __construct( $name = 'Logged In Status Widget' )
     {
         parent::__construct( false, $name );
     }
 
-    public static function init()
-    {
-        register_widget( __CLASS__ );
-    }
-
-    function widget( $args, $instance )
+    public function widget( $args, $instance )
     {
         extract( $args );
-        $title = $body = '';
+
         if ( is_user_logged_in() ) {
-            $title = apply_filters( 'widget_title', $instance['logged_in_title'] );
 
-            global $userdata;
-            get_currentuserinfo();
-
-            $title = str_ireplace( '{USERNAME}', $userdata->user_login, $title );
-            $body  = str_ireplace( '{USERNAME}', $userdata->user_login, $instance['logged_in_body'] );
+            $title = $instance['logged_in_title'];
+            $body  = $instance['logged_in_body'];
 
         } else {
-            $title = apply_filters( 'widget_title', $instance['logged_out_title'] );
+
+            $title = $instance['logged_out_title'];
             $body  = $instance['logged_out_body'];
+
         }
 
         echo $before_widget;
 
-        if ( $title )
-            echo $before_title, $title, $after_title;
+        if ( ! empty( $title ) )
+            echo $before_title, do_shortcode( apply_filters( 'widget_title', $title, $instance, $this->id_base ) ), $after_title;
 
-        echo do_shortcode( $body ), $after_widget;
+        echo wpautop( do_shortcode( $body ) ), $after_widget;
     }
 
-    function update( $new_instance, $old_instance )
+    public function update( $new_instance, $old_instance )
     {
         $instance = $old_instance;
         $instance['logged_out_title'] = wp_kses_data( $new_instance['logged_out_title'] );
@@ -56,7 +100,7 @@ class LoggedInStatusWidget extends WP_Widget
         return $instance;
     }
 
-    function form( $instance )
+    public function form( $instance )
     {
         $logged_out_title = isset( $instance['logged_out_title'] ) ? esc_attr( $instance['logged_out_title'] ) : '';
         $logged_in_title  = isset( $instance['logged_in_title'] ) ? esc_attr( $instance['logged_in_title'] ) : '';
@@ -88,4 +132,7 @@ class LoggedInStatusWidget extends WP_Widget
     }
 }
 
-add_action('widgets_init', array( 'LoggedInStatusWidget', 'init' ) );
+add_action( 'widgets_init', function() {
+    new UserInfoShortcode( wp_get_current_user() );
+    register_widget('LoggedInStatusWidget');
+} );
