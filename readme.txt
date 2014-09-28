@@ -1,4 +1,4 @@
-=== Plugin Name ===
+=== Logged In Status Widget ===
 Contributors: webdeveric
 Donate link: http://webdeveric.com/
 Tags: widget, logged in, logged out
